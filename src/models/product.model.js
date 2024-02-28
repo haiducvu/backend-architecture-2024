@@ -31,7 +31,7 @@ const productSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Shop'
     },
-    product_attribute: {
+    product_attributes: {
         type: Schema.Types.Mixed,
         require: true
     }
