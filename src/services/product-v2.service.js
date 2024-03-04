@@ -5,17 +5,18 @@ const { BadRequestError } = require("../core/error.response");
 
 // define Factory class to create product
 class ProductFactory {
+
+    static productRegistry = {}
+
+    static registerProductType(type, classRef) {
+        ProductFactory.productRegistry[type] = classRef
+    }
+
     static async createProduct(type, payload) {
-        switch(type) {
-            case 'Electronics':
-                return new Electronics(payload).createProduct()
-            case 'Clothing':
-                return new Clothing(payload).createProduct()
-            case 'Furniture': 
-                return new Furnitures(payload).createProduct()
-            default:
-                throw new BadRequestError(`Invalid Product Types ${type}`)
-        }
+        const productClass = ProductFactory.productRegistry[type]
+        if (product_type) throw new BadRequestError(`Invalid Product Types ${type}`);
+
+        return new productClass(payload).createProduct()
     }
 }
 
@@ -37,7 +38,7 @@ class Product {
 
     // create new product
     async createProduct(product_id) {
-        return await product.create({...this, _id: product_id})
+        return await product.create({ ...this, _id: product_id })
     }
 }
 
@@ -46,7 +47,7 @@ class Clothing extends Product {
     async createProduct() {
         const newClothing = await clothing.create(this.product_attributes)
         if (!newClothing) throw new BadRequestError('create new Clothing error');
-        
+
         const newProduct = await super.createProduct();
         if (!newProduct) throw new BadRequestError('create new Product error');
 
@@ -62,7 +63,7 @@ class Electronics extends Product {
             product_shop: this.product_shop
         })
         if (!newElectronic) throw new BadRequestError('create new Electronics error');
-        
+
         const newProduct = await super.createProduct(newElectronic._id);
         if (!newProduct) throw new BadRequestError('create new Product error');
 
@@ -73,17 +74,22 @@ class Electronics extends Product {
 // define sub-class for different product types Furniture
 class Furnitures extends Product {
     async createProduct() {
-        const newElectronic = await furniture.create({
+        const newFurniture = await furniture.create({
             ...this.product_attributes,
             product_shop: this.product_shop
         })
-        if (!newElectronic) throw new BadRequestError('create new Furnitures error');
-        
-        const newProduct = await super.createProduct(newElectronic._id);
+        if (!newFurniture) throw new BadRequestError('create new Furnitures error');
+
+        const newProduct = await super.createProduct(newFurniture._id);
         if (!newProduct) throw new BadRequestError('create new Product error');
 
         return newProduct;
     }
 }
+
+// register product types
+ProductFactory.registerProductType('Electronics', Electronics)
+ProductFactory.registerProductType('Clothing', Clothing)
+ProductFactory.registerProductType('Furniture', Furnitures)
 
 module.exports = ProductFactory;
