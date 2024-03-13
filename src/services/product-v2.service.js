@@ -2,7 +2,8 @@
 
 const { product, clothing, electronics, furniture } = require('../models/product.model');
 const { BadRequestError } = require("../core/error.response");
-const { findAllDraftsForShop, findAllPublishForShop, publishProductByShop, unPublishProductByShop, searchProduct } = require("../models/repositories/product.repo");
+const { findAllDraftsForShop, findAllPublishForShop, publishProductByShop, unPublishProductByShop, searchProduct, findAllProducts, findProduct, updateProductId } = require("../models/repositories/product.repo");
+const { removeUndefinedObject, updateNestedObjectParser } = require('../utils');
 
 // define Factory class to create product
 class ProductFactory {
@@ -15,17 +16,24 @@ class ProductFactory {
 
     static async createProduct(type, payload) {
         const productClass = ProductFactory.productRegistry[type]
-        if (product_type) throw new BadRequestError(`Invalid Product Types ${type}`);
+        if (!product_type) throw new BadRequestError(`Invalid Product Types ${type}`);
 
         return new productClass(payload).createProduct()
     }
 
+    static async updateProduct(type, product_id, payload) {
+        const productClass = ProductFactory.productRegistry[type]
+        if (!product_type) throw new BadRequestError(`Invalid Product Types ${type}`);
+
+        return new productClass(payload).updateProduct(product_id)
+    }
+
     static async publishProductByShop({ product_shop, product_id }) {
-        const shop = await publishProductByShop({ product_shop, product_id })
+        return await publishProductByShop({ product_shop, product_id })
     }
 
     static async unPublishProductByShop({ product_shop, product_id }) {
-        const shop = await unPublishProductByShop({ product_shop, product_id })
+        return await unPublishProductByShop({ product_shop, product_id })
     }
 
     static async findAllDraftsForShop({ product_shop, limit = 50, skip = 0 }) {
@@ -38,8 +46,16 @@ class ProductFactory {
         return await findAllPublishForShop({ query, limit, skip })
     }
 
-    static async searchProducts({keySearch: string}) {
-        return await searchProduct({keySearch})
+    static async searchProducts({ keySearch }) {
+        return await searchProduct({ keySearch })
+    }
+
+    static async findAllProducts({ limit = 50, sort = 'ctime', page = 1, filter = { isPublished: true } }) {
+        return await findAllProducts(({ limit, sort, page, filter, select: ['product_name', 'product_price', 'product_thumb'] }))
+    }
+
+    static async findProduct({ product_id }) {
+        return await findProduct({ product_id, unSelect: ['__v'] })
     }
 }
 
@@ -63,6 +79,11 @@ class Product {
     async createProduct(product_id) {
         return await product.create({ ...this, _id: product_id })
     }
+
+    // update product
+    async updateProduct(product_id, bodyUpdate) {
+        return await updateProductId({ product_id, bodyUpdate, model: product })
+    }
 }
 
 // define sub-class for different product types Clothing
@@ -75,6 +96,22 @@ class Clothing extends Product {
         if (!newProduct) throw new BadRequestError('create new Product error');
 
         return newProduct;
+    }
+
+    async updateProduct(product_id) {
+        const objectParams = removeUndefinedObject(this);
+
+        if (objectParams.product_attributes) {
+            // update child
+            await updateProductId({
+                product_id,
+                bodyUpdate: updateNestedObjectParser(objectParams.product_attributes),
+                model: clothing
+            })
+        }
+
+        const updateProduct = await super.updateProduct(product_id, updateNestedObjectParser(objectParams))
+        return updateProduct
     }
 }
 
