@@ -1,9 +1,11 @@
 'use strict'
 
+const { Types } = require("mongoose");
 const { product, clothing, electronics, furniture } = require('../models/product.model');
 const { BadRequestError } = require("../core/error.response");
 const { findAllDraftsForShop, findAllPublishForShop, publishProductByShop, unPublishProductByShop, searchProduct, findAllProducts, findProduct, updateProductId } = require("../models/repositories/product.repo");
 const { removeUndefinedObject, updateNestedObjectParser } = require('../utils');
+const { insertInventory } = require('../models/repositories/inventory.repo');
 
 // define Factory class to create product
 class ProductFactory {
@@ -16,14 +18,14 @@ class ProductFactory {
 
     static async createProduct(type, payload) {
         const productClass = ProductFactory.productRegistry[type]
-        if (!product_type) throw new BadRequestError(`Invalid Product Types ${type}`);
+        if (!productClass) throw new BadRequestError(`Invalid Product Types ${type}`);
 
         return new productClass(payload).createProduct()
     }
 
     static async updateProduct(type, product_id, payload) {
         const productClass = ProductFactory.productRegistry[type]
-        if (!product_type) throw new BadRequestError(`Invalid Product Types ${type}`);
+        if (!productClass) throw new BadRequestError(`Invalid Product Types ${type}`);
 
         return new productClass(payload).updateProduct(product_id)
     }
@@ -77,7 +79,16 @@ class Product {
 
     // create new product
     async createProduct(product_id) {
-        return await product.create({ ...this, _id: product_id })
+        const newProduct = product.create({ ...this, _id: product_id })
+        if(newProduct) {
+            // add product_stock inventory collection
+            await insertInventory({
+                productId: new Types.ObjectId(newProduct._id),
+                shopId: this.product_shop,
+                stock: this.product_quantity
+            })
+        }
+        return newProduct
     }
 
     // update product
@@ -91,8 +102,10 @@ class Clothing extends Product {
     async createProduct() {
         const newClothing = await clothing.create(this.product_attributes)
         if (!newClothing) throw new BadRequestError('create new Clothing error');
-
-        const newProduct = await super.createProduct();
+        const x = newClothing._id; // new Types.ObjectId(product_id),
+        // const z = new Types.ObjectId(newClothing._id);
+        console.log('1111', x)
+        const newProduct = await super.createProduct(newClothing._id);
         if (!newProduct) throw new BadRequestError('create new Product error');
 
         return newProduct;
