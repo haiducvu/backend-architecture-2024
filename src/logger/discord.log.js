@@ -1,6 +1,8 @@
 'use strict'
 
 const { Client, GatewayIntentBits } = require('discord.js')
+const { CHANNEL_DISCORD, TOKEN_DISCORD} = process.env
+
 // const client = new Client({
 //     intents: [
 //         GatewayIntentBits.DirectMessages,
@@ -35,7 +37,49 @@ class LoggerService {
                 GatewayIntentBits.MessageContent
             ]
         })
+
+        // add channelId
+        this.channelId = CHANNEL_DISCORD
+
+        this.client.on('ready', () => {
+            console.log(`Logged is as ${this.client.user.tag}`)
+        })
+
+        this.client.login(TOKEN_DISCORD)
+    }
+
+    sendToFormatCode(logData) {
+        const { code, message = 'This is some additional information about the code.', title = 'Code example'} = logData;
+
+        if( 1 === 1) { // product and dev
+
+        }
+
+        const codeMessage = {
+            content: message,
+            embeds: [
+                {
+                    color: parseInt('00ff00', 16), // Convert hexadecimal color code to integer
+                    title,
+                    description: '```json\n' + JSON.stringify(code, null, 2) + '\n```',
+                }
+            ]
+        }
+
+        this.sendToMessage(codeMessage)
+    }
+
+    sendToMessage(message = 'message') {
+        const channel = this.client.channels.cache.get(this.channelId)
+        if(!channel) {
+            console.error(`Can't find the channel ...`, this.channelId)
+            return
+        }
+        // message use CHAT GPT API CALL
+        channel.send(message).catch(e => console.error(e))
     }
 }
 
-module.exports = new LoggerService()
+const loggerService = new LoggerService();
+
+module.exports = new LoggerService(); //loggerServices
