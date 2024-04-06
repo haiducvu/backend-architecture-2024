@@ -53,7 +53,7 @@ class ProductFactory {
     }
 
     static async findAllProducts({ limit = 50, sort = 'ctime', page = 1, filter = { isPublished: true } }) {
-        return await findAllProducts(({ limit, sort, page, filter, select: ['product_name', 'product_price', 'product_thumb'] }))
+        return await findAllProducts(({ limit, sort, page, filter, select: ['product_shop', 'product_name', 'product_price', 'product_thumb'] }))
     }
 
     static async findProduct({ product_id }) {
@@ -80,7 +80,7 @@ class Product {
     // create new product
     async createProduct(product_id) {
         const newProduct = product.create({ ...this, _id: product_id })
-        if(newProduct) {
+        if (newProduct) {
             // add product_stock inventory collection
             await insertInventory({
                 productId: new Types.ObjectId(newProduct._id),

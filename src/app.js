@@ -15,6 +15,12 @@ app.use(compression());
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+// test pub.sub redis 
+// const inventoryTest = require('./tests/inventory.test');
+// const productTest = require('./tests/product.test');
+
+// productTest.purchaseProduct('product:001', 10)
+
 // init db
 require("./dbs/init.mongodb");
 // init routes
@@ -24,7 +30,7 @@ app.use('/', require('./routes'))
 app.use((req, res, next) => {
     const error = new Error('Not found')
     error.status = 404,
-    next(error)
+        next(error)
 })
 
 app.use((error, req, res, next) => {
