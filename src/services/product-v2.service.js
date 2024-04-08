@@ -6,6 +6,7 @@ const { BadRequestError } = require("../core/error.response");
 const { findAllDraftsForShop, findAllPublishForShop, publishProductByShop, unPublishProductByShop, searchProduct, findAllProducts, findProduct, updateProductId } = require("../models/repositories/product.repo");
 const { removeUndefinedObject, updateNestedObjectParser } = require('../utils');
 const { insertInventory } = require('../models/repositories/inventory.repo');
+const { pushNotifyToSystem } = require("./notification.service");
 
 // define Factory class to create product
 class ProductFactory {
@@ -82,11 +83,24 @@ class Product {
         const newProduct = product.create({ ...this, _id: product_id })
         if (newProduct) {
             // add product_stock inventory collection
-            await insertInventory({
+            const invenData = await insertInventory({
                 productId: new Types.ObjectId(newProduct._id),
                 shopId: this.product_shop,
                 stock: this.product_quantity
             })
+
+            // push notify to system collection
+            pushNotifyToSystem({
+                type: 'SHOP-001',
+                receivedId: 1,
+                senderId: this.product_shop,
+                options: {
+                    product_name: this.product_name,
+                    shop_name: this.product_shop
+                }
+            }).then(rs => console.log('rsSSS', rs))
+                .catch(error => console.log('errorRRR', error))
+            console.log('invenData', invenData)
         }
         return newProduct
     }
@@ -102,9 +116,6 @@ class Clothing extends Product {
     async createProduct() {
         const newClothing = await clothing.create(this.product_attributes)
         if (!newClothing) throw new BadRequestError('create new Clothing error');
-        const x = newClothing._id; // new Types.ObjectId(product_id),
-        // const z = new Types.ObjectId(newClothing._id);
-        console.log('1111', x)
         const newProduct = await super.createProduct(newClothing._id);
         if (!newProduct) throw new BadRequestError('create new Product error');
 

@@ -18,6 +18,7 @@ router.use('/v1/api/discount', require('./discount'))
 
 router.use('/v1/api/product', require('./shop'))
 router.use('/v1/api/comment', require('./comment'))
+router.use('/v1/api/notification', require('./notification'))
 router.use('/v1/api', require('./access'))
 
 

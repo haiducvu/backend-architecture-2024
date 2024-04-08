@@ -34,7 +34,7 @@ const createTokenPair = async (payload, publicKey, privateKey) => {
     }
 }
 
-const authentication = asyncHandler( async (req, res, next) => {
+const authentication = asyncHandler(async (req, res, next) => {
     /**
      * 1- check userId missing??
      * 2- get accessToken
@@ -46,17 +46,17 @@ const authentication = asyncHandler( async (req, res, next) => {
 
     const userId = req.headers[HEADER.CLIENT_ID]
 
-    if(!userId) throw new AuFailureError('Invalid Request');
+    if (!userId) throw new AuFailureError('Invalid Request');
 
     const keyStore = await findByUserId(userId);
-    if(!keyStore) throw new NotFoundError('Invalid Keystore');
+    if (!keyStore) throw new NotFoundError('Invalid Keystore');
 
     const accessToken = req.headers[HEADER.AUTHORIZATION]
-    if(!accessToken) throw new AuFailureError('Invalid Request');
+    if (!accessToken) throw new AuFailureError('Invalid Request');
 
     try {
         const decodeUser = JWT.verify(accessToken, keyStore.publicKey);
-        if(userId !== decodeUser.userId) throw new AuFailureError('Invalid UserId');
+        if (userId !== decodeUser.userId) throw new AuFailureError('Invalid UserId');
         req.keyStore = keyStore;
         req.user = decodeUser;
         return next();
@@ -65,7 +65,7 @@ const authentication = asyncHandler( async (req, res, next) => {
     }
 })
 
-const verifyJWT = async(token, keySecret) => {
+const verifyJWT = async (token, keySecret) => {
     return await JWT.verify(token, keySecret)
 }
 
