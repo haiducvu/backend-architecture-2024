@@ -32,7 +32,7 @@ class AccessService {
 
         const { userId, email } = await verifyJWT(refreshToken, holderToken.privateKey)
 
-        const foundShop = await findByEmail({email})
+        const foundShop = await findByEmail({ email })
         if (!foundShop) throw new AuFailureError('Shop not registered')
 
         const tokens = await createTokenPair({ userId, email }, holderToken.publicKey, holderToken.privateKey)
