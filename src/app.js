@@ -23,6 +23,8 @@ app.use(express.urlencoded({ extended: true }))
 
 // init db
 require("./dbs/init.mongodb");
+// init mysql
+require("./dbs/init.mysql");
 // init routes
 app.use('/', require('./routes'))
 
