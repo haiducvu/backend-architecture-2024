@@ -14,6 +14,9 @@ router.use(apiKey);
 // check permission
 router.use(permission('0000'));
 
+// library
+router.use('/v1/api/library', require('./library'))
+
 router.use('/v1/api/profile', require('./profile'))
 router.use('/v1/api/rbac', require('./rbac'))
 // router.use('/v1/api/checkout', require('./checkout'))

@@ -1,10 +1,14 @@
 "use strict";
-
-import sequelize from "../../dbs/sequelize";
-
+const Resource = require('./resource.model');
 const { DataTypes, Model } = require("sequelize");
+const sequelize = require("../../dbs/sequelize");
 
 const Role = sequelize.define('Role', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     rol_name: {
         type: DataTypes.ENUM('user', 'shop', 'admin'),
         defaultValue: 'user',
@@ -24,17 +28,27 @@ const Role = sequelize.define('Role', {
         defaultValue: ''
     }
 }, {
-    timestamps: true,
-    tableName: 'Roles'
+    timestamps: true
 });
 
 const Grant = sequelize.define('Grant', {
-    resource: {
+    id: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    roleId: {
+        type: DataTypes.INTEGER,
         references: {
-            model: 'Resources', // name of Target model
-            key: 'id', // key in Target model that we're referencing
+            model: Role,
+            key: 'id'
+        }
+    },
+    resourceId: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: Resource,
+            key: 'id'
         }
     },
     actions: {
@@ -46,21 +60,14 @@ const Grant = sequelize.define('Grant', {
         defaultValue: '*'
     }
 }, {
-    timestamps: true,
-    tableName: 'Grants'
+    timestamps: true
 });
 
-Role.hasMany(Grant, {
-    foreignKey: 'roleId',
-    as: 'grants'
-});
-Grant.belongsTo(Role, {
-    foreignKey: 'roleId',
-    as: 'role'
-});
+// Defined associations
+Role.hasMany(Grant, { foreignKey: 'roleId' }); //, as: 'grants' 
+Grant.belongsTo(Role, { foreignKey: 'roleId' }); // , as: 'role' 
 
-sequelize.sync({ force: true }).then(() => {
-    console.log("Tables have been created");
-}).catch(error => console.log('This error occured', error));
+Resource.hasOne(Grant, { foreignKey: 'resourceId' }); // , as: 'resource'
+Grant.belongsTo(Resource, { foreignKey: 'resourceId' }); // , as: 'resource'
 
-module.exports = { Role, Grant };
+module.exports = { Role, Grant, Resource };

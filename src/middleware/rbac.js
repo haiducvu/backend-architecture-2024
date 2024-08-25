@@ -1,6 +1,7 @@
 'use strict'
 
 const { AuthFailureError } = require('../core/error.response')
+const { roleList } = require('../services/rbac.service')
 const rbac = require('./role.middleware')
 
 /**
@@ -11,8 +12,15 @@ const rbac = require('./role.middleware')
 const grantAccess = (action, resource) => {
     return async (req, res, next) => {
         try {
+            const roles = await roleList(
+                {
+                    userId: 999
+                }
+            )
+            rbac.setGrants(roles)
             const rol_name = req.query.role;
             const permission = rbac.can(rol_name)[action](resource);
+            console.log('permission', permission)
             if (!permission.granted) {
                 throw new AuthFailureError('You dont have permission to perform this action')
             }

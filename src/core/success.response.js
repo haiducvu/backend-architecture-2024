@@ -15,10 +15,21 @@ class SuccessResponse {
         message,
         statusCode = StatusCode.OK,
         reasonStatusCode = ReasonStatusCode.OK,
-        metadata = {},
+        metadata = {}
     }) {
-        this.message = !message ? reasonStatusCode : message;
-        (this.status = statusCode), (this.metadata = metadata);
+        // this.message = !message ? reasonStatusCode : message;
+        // (this.status = statusCode), (this.metadata = metadata);
+        // [Update 28/07/2024]
+        if (metadata?.message && metadata?.status || metadata?.errmsg) {
+            this.message = metadata.message
+            this.status = metadata.status || 500
+            this.metadata = {}
+        } else {
+            this.message = message
+            this.status = statusCode;
+            this.metadata = metadata
+        }
+        // console.log('this', this)
     }
 
     send(res, headers = {}) {
