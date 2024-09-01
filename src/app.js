@@ -19,7 +19,6 @@ app.use(express.urlencoded({ extended: true }))
 // tracking log
 app.use((req, res, next) => {
     const requestId = req.headers['x-request-id'];
-    console.log('requestId11111111', requestId)
     req.requestId = requestId ? requestId : uuidv4();
     myLogger.log(`input params::${req.method}::`, [
         req.path,
