@@ -50,10 +50,9 @@ const sendEmailToken = async ({ email = null }) => {
         const content = replacePlaceholder(
             template.tem_html,
             {
-                link_verify: `http://localhost:3056/cgp/welcome-back?token=${token}`
+                link_verify: `http://localhost:3056/cgp/welcome-back?token=${token.otp_token}`
             }
         )
-        console.log('contentXXXXXX', content);
         sendEmailLinkVerify({
             html: content,
             toEmail: email,

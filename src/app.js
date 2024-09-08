@@ -35,8 +35,13 @@ app.use((req, res, next) => {
 
 // productTest.purchaseProduct('product:001', 10)
 
-// init db
+// init mongo db
 require("./dbs/init.mongodb");
+
+// init mongo redis
+const initRedis = require("./dbs/init.redis")
+initRedis.initRedis()
+
 // init mysql
 require("./dbs/init.mysql");
 // init routes
